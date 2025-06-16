@@ -1,13 +1,13 @@
 """main for stock tracker"""
 import sqlite3
 
-class Transaction():
+class Transaction:
     """
     Represents a single transaction
 
     Instance Attributes:
         - ticker: code of the stock
-        - type: either buy/short/square off
+        - type: either buy/short/sell
         - date: tuple in form of (year, month, day)
         - quantity: number of stocks
         - price: price of the buy/sell
