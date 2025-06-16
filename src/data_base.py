@@ -12,15 +12,17 @@ class Transaction:
         - quantity: number of stocks
         - price: price of the buy/sell
         - fees: fee for the transaction
+        - left: how many shares left
     """
     ticker: str
     type: str
     date: tuple
-    quantity: int
+    quantity: float
     price: float
     fees: float
+    left: float
 
-    def __innit__(self, ticker:str, type:str, date:tuple, quantity:int, price:float, fees: float) -> None:
+    def __innit__(self, ticker:str, type:str, date:tuple, quantity:float, price:float, fees: float, left:float) -> None:
         """Initializes values to the arguments"""
         self.ticker = ticker
         self.type = type
@@ -28,7 +30,11 @@ class Transaction:
         self.quantity = quantity
         self.price = price
         self.fees = fees
+        self.left = left
 
+
+class TransactionHandler:
+    """Handles database related things"""
     def create_sql(self):
         """Creates SQL database and tables"""
 
@@ -42,10 +48,10 @@ class Transaction:
         year NUMERIC
         month NUMERIC
         day NUMERIC
-        quantity INTEGER
+        quantity REAL
         price REAL
         fees REAL
-        left INTEGER        
+        left REAL        
         )""")
 
         cursor.execute("""
@@ -58,15 +64,23 @@ class Transaction:
         )""")
         connection.close()
 
-    def upload_transaction(self):
+    def upload_transaction(self, transaction: Transaction):
         """Uploads the current transaction to the database"""
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
         cursor.execute("""
         INSERT INTO transactions (ticker, type, year, month, day, quantity, price, fees, left)
-        values(?, ?, ?, ?, ?, ?, ?, ?, ?) """, (self.ticker, self.type, self.date[0], self.date[1],
-                                                self.date[2], self.quantity, self.price, self.fees, self.quantity))
+        values(?, ?, ?, ?, ?, ?, ?, ?, ?) """, (transaction.ticker, transaction.type, transaction.date[0],
+                                                transaction.date[1], transaction.date[2], transaction.quantity,
+                                                transaction.price, transaction.fees, transaction.quantity))
         connection.close()
+
+    def read_data_base(self):
+        """reads database"""
+        connection = sqlite3.connect("transactions.db")
+        cursor = connection.cursor()
+        cursor.execute("""SELECT * FROM transactions""")
+
 
 if __name__ == "__main__":
     ...

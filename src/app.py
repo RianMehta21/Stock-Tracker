@@ -1,7 +1,9 @@
 """"The GUI for main.py"""
+import datetime
 import tkinter as tk
 from tkinter import StringVar, ttk
-import data_base
+from data_base import *
+from datetime import datetime
 
 
 class MyGUI:
@@ -15,9 +17,17 @@ class MyGUI:
 
         self.input_frame = tk.Frame(self.root, pady=100)
         self.input_frame.pack()
-        for i in range(5):
+        for i in range(8):
             self.input_frame.columnconfigure(i, weight=1)
 
+        options = ["BUY", "SHORT", "SELL"]
+        self.type_input = StringVar()
+        self.type_input.set(options[0])
+        self.drop_down = tk.OptionMenu(self.input_frame, self.type_input, *options)
+        self.drop_down.grid(row=1, column=0)
+
+
+    #TODO: fees
         self.header = tk.Label(self.input_frame, text="Ticker")
         self.header.grid(row=0, column=1)
         self.header = tk.Label(self.input_frame, text="Quantity")
@@ -25,21 +35,16 @@ class MyGUI:
         self.header = tk.Label(self.input_frame, text="Price")
         self.header.grid(row=0, column=3)
 
-        options = ["BUY", "SHORT", "SELL"]
-        self.type = StringVar()
-        self.type.set(options[0])
-        self.drop_down = tk.OptionMenu(self.input_frame, self.type, *options)
-        self.drop_down.grid(row=1, column=0)
-
-        self.ticker_input = ttk.Entry(self.input_frame)
+        self.ticker_input = ttk.Entry(self.input_frame, width = 10)
         self.ticker_input.grid(row=1, column=1)
 
-        self.quantity_input = ttk.Entry(self.input_frame)
+        self.quantity_input = ttk.Entry(self.input_frame, width = 10)
         self.quantity_input.grid(row=1, column=2)
 
-        self.price_input = ttk.Entry(self.input_frame)
+        self.price_input = ttk.Entry(self.input_frame, width = 10)
         self.price_input.grid(row=1, column=3)
 
+    #TODO: fees entry
         self.submit = ttk.Button(self.input_frame, text="Submit", command=self.submit)
         self.submit.grid(row=1, column=4)
 
@@ -54,23 +59,35 @@ class MyGUI:
 
         quantity = self.quantity_input.get()
         ticker = self.ticker_input.get()
-        type = self.type.get()
+        type = self.type_input.get()
         price = self.price_input.get()
 
         if not all([quantity, ticker, type, price]):
             tk.Label(self.input_frame, text="Fill all the values", fg = "red", font=('Helvetica', 12)).grid(row=2, column=2)
+            return
         else:
             try:
-                quantity = int(quantity)
+                quantity = float(quantity)
             except ValueError:
-                tk.Label(self.input_frame, text="Invalid quantity input", fg = "red", font=('Helvetica', 12)).grid(row=2, column=2)
+                tk.Label(self.input_frame, text="Invalid quantity", fg = "red", font=('Helvetica', 12)).grid(row=2, column=2)
                 return
             try:
                 price = float(price)
             except ValueError:
-                tk.Label(self.input_frame, text="Invalid price input", fg = "red", font=('Helvetica', 12)).grid(row=2, column=2)
+                tk.Label(self.input_frame, text="Invalid price", fg = "red", font=('Helvetica', 12)).grid(row=2, column=2)
                 return
+        self.ticker_input.delete(0,tk.END)
+        self.quantity_input.delete(0,tk.END)
+        self.price_input.delete(0,tk.END)
+
+#TODO: fix the date, create transaction, upload transaction, see if it works in database
+        # date = tuple(
+        # transaction = Transaction(ticker, type, date, quantity, price, fees, quantity)
+
 
 
 gui = MyGUI()
 gui.__innit__()
+transaction_handler = TransactionHandler()
+transaction_handler.create_sql()
+transaction_handler.read_data_base()
