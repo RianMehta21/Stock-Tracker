@@ -1,6 +1,5 @@
-import tkinter
+"""main for stock tracker"""
 import sqlite3
-
 
 class Transaction():
     """
