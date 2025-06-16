@@ -3,7 +3,7 @@ import datetime
 import tkinter as tk
 from tkinter import StringVar, ttk
 from data_base import *
-from datetime import datetime
+from datetime import date
 
 
 class MyGUI:
@@ -27,13 +27,14 @@ class MyGUI:
         self.drop_down.grid(row=1, column=0)
 
 
-    #TODO: fees
-        self.header = tk.Label(self.input_frame, text="Ticker")
-        self.header.grid(row=0, column=1)
-        self.header = tk.Label(self.input_frame, text="Quantity")
-        self.header.grid(row=0, column=2)
-        self.header = tk.Label(self.input_frame, text="Price")
-        self.header.grid(row=0, column=3)
+        self.ticker_header = tk.Label(self.input_frame, text="Ticker")
+        self.ticker_header.grid(row=0, column=1)
+        self.quantity_header = tk.Label(self.input_frame, text="Quantity")
+        self.quantity_header.grid(row=0, column=2)
+        self.price_header = tk.Label(self.input_frame, text="Price")
+        self.price_header.grid(row=0, column=3)
+        self.fee_header = tk.Label(self.input_frame, text="Fee")
+        self.fee_header.grid(row=0,column=4)
 
         self.ticker_input = ttk.Entry(self.input_frame, width = 10)
         self.ticker_input.grid(row=1, column=1)
@@ -44,9 +45,11 @@ class MyGUI:
         self.price_input = ttk.Entry(self.input_frame, width = 10)
         self.price_input.grid(row=1, column=3)
 
-    #TODO: fees entry
+        self.fee_input = ttk.Entry(self.input_frame, width = 10)
+        self.fee_input.grid(row=1, column=4)
+
         self.submit = ttk.Button(self.input_frame, text="Submit", command=self.submit)
-        self.submit.grid(row=1, column=4)
+        self.submit.grid(row=1, column=5)
 
         self.root.mainloop()
 
@@ -61,28 +64,35 @@ class MyGUI:
         ticker = self.ticker_input.get()
         type = self.type_input.get()
         price = self.price_input.get()
+        fee = self.fee_input.get()
 
         if not all([quantity, ticker, type, price]):
-            tk.Label(self.input_frame, text="Fill all the values", fg = "red", font=('Helvetica', 12)).grid(row=2, column=2)
+            tk.Label(self.input_frame, text="Fill all the values", fg = "red", font=('Roboto', 12)).grid(row=2, column=2, columnspan=2)
             return
         else:
             try:
                 quantity = float(quantity)
             except ValueError:
-                tk.Label(self.input_frame, text="Invalid quantity", fg = "red", font=('Helvetica', 12)).grid(row=2, column=2)
+                tk.Label(self.input_frame, text="Invalid quantity", fg = "red", font=('Roboto', 12)).grid(row=2, column=2, columnspan=2)
                 return
             try:
                 price = float(price)
             except ValueError:
-                tk.Label(self.input_frame, text="Invalid price", fg = "red", font=('Helvetica', 12)).grid(row=2, column=2)
+                tk.Label(self.input_frame, text="Invalid price", fg = "red", font=('Roboto', 12)).grid(row=2, column=2, columnspan=2)
                 return
+            try:
+                fee = float(fee)
+            except ValueError:
+                tk.Label(self.input_frame, text="Invalid fee", fg = "red", font=('Roboto', 12)).grid(row=2, column=2, columnspan=2)
         self.ticker_input.delete(0,tk.END)
         self.quantity_input.delete(0,tk.END)
         self.price_input.delete(0,tk.END)
+        self.fee_input.delete(0,tk.END)
 
-#TODO: fix the date, create transaction, upload transaction, see if it works in database
-        # date = tuple(
-        # transaction = Transaction(ticker, type, date, quantity, price, fees, quantity)
+        today = datetime.date.today()
+        date_today = [today.year, today.month, today.day]
+        #TODO: fix this
+        #transaction = Transaction(ticker, type, date_today, quantity, price, fees, quantity)
 
 
 

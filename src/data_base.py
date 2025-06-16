@@ -16,13 +16,13 @@ class Transaction:
     """
     ticker: str
     type: str
-    date: tuple
+    date: list
     quantity: float
     price: float
     fees: float
     left: float
 
-    def __innit__(self, ticker:str, type:str, date:tuple, quantity:float, price:float, fees: float, left:float) -> None:
+    def __innit__(self, ticker:str, type:str, date:list, quantity:float, price:float, fees: float, left:float) -> None:
         """Initializes values to the arguments"""
         self.ticker = ticker
         self.type = type
