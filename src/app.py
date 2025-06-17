@@ -10,31 +10,41 @@ class MyGUI:
     """Contains all GUI related functions"""
 
     def __init__(self):
-        """Creates the GUI window"""
-        self.transaction_handler = TransactionHandler()
-        self.transaction_handler.create_sql()
-        self.create_transaction_page()
-
-    def read(self):
-        self.transaction_handler.read_data_base()
-
-
-    def create_transaction_page(self):
-        """Creates the GUI for the transaction page"""
+        """Creates the GUI window and transaction handler"""
         self.root = tk.Tk()
         self.root.geometry("1000x500")
         self.root.title("Stock Tracker")
 
-        self.input_frame = tk.Frame(self.root, pady=100)
-        self.input_frame.pack()
-        for i in range(8):
+        style = ttk.Style()
+        style.layout("TNotebook", [])
+        style.configure("TNotebook", highlightbackground="#848a98", tabmargins=0)
+
+        self.notebook = ttk.Notebook(self.root, style="TNotebook")
+        self.notebook.pack(fill=tk.BOTH, expand=True)
+
+        self.input_frame = tk.Frame(self.notebook, pady=100,padx=200)
+        self.portfolio_frame = tk.Frame(self.notebook, pady=100, padx=200)
+
+        self.notebook.add(self.input_frame, text="INPUT TRANSACTION")
+        self.notebook.add(self.portfolio_frame, text="PORTFOLIO")
+
+        self.transaction_handler = TransactionHandler()
+        self.transaction_handler.create_sql()
+        self.create_input_page()
+        self.create_portfolio_page()
+
+        self.root.mainloop()
+
+    def create_input_page(self):
+        """Sets up the input tab"""
+        for i in range(6):
             self.input_frame.columnconfigure(i, weight=1)
 
         options = ["BUY", "SHORT", "SELL"]
         self.type_input = StringVar()
         self.type_input.set(options[0])
         self.drop_down = tk.OptionMenu(self.input_frame, self.type_input, *options)
-        self.drop_down.grid(row=1, column=0)
+        self.drop_down.grid(row=1, column=0, sticky="ew")
 
 
         self.ticker_header = tk.Label(self.input_frame, text="Ticker")
@@ -47,21 +57,29 @@ class MyGUI:
         self.fee_header.grid(row=0,column=4)
 
         self.ticker_input = ttk.Entry(self.input_frame, width = 10)
-        self.ticker_input.grid(row=1, column=1)
+        self.ticker_input.grid(row=1, column=1, sticky="ew")
 
         self.quantity_input = ttk.Entry(self.input_frame, width = 10)
-        self.quantity_input.grid(row=1, column=2)
+        self.quantity_input.grid(row=1, column=2, sticky="ew")
 
         self.price_input = ttk.Entry(self.input_frame, width = 10)
-        self.price_input.grid(row=1, column=3)
+        self.price_input.grid(row=1, column=3, sticky="ew")
 
         self.fee_input = ttk.Entry(self.input_frame, width = 10)
-        self.fee_input.grid(row=1, column=4)
+        self.fee_input.grid(row=1, column=4, sticky="ew")
 
         self.submit = ttk.Button(self.input_frame, text="Submit", command=self.submit)
-        self.submit.grid(row=1, column=5)
+        self.submit.grid(row=1, column=5, sticky="ew")
 
-        self.root.mainloop()
+    def create_portfolio_page(self):
+        """Sets up the portfiolio tab"""
+        for i in range(8):
+            self.input_frame.columnconfigure(i, weight=1)
+
+        self.label32 = tk.Label(self.portfolio_frame,text="hello")
+        self.label32.grid(row=0,column=0)
+
+
 
     def submit(self):
         """Submits the input in the GUI to the backend"""
