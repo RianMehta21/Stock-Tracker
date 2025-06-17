@@ -2,6 +2,8 @@
 import datetime
 import tkinter as tk
 from tkinter import StringVar, ttk
+from typing import Optional
+
 from data_base import *
 from datetime import date
 
@@ -21,6 +23,7 @@ class MyGUI:
 
         self.notebook = ttk.Notebook(self.root, style="TNotebook")
         self.notebook.pack(fill=tk.BOTH, expand=True)
+        self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
 
         self.input_frame = tk.Frame(self.notebook, pady=100,padx=200)
         self.portfolio_frame = tk.Frame(self.notebook, pady=100, padx=200)
@@ -31,9 +34,14 @@ class MyGUI:
         self.transaction_handler = TransactionHandler()
         self.transaction_handler.create_sql()
         self.create_input_page()
-        self.create_portfolio_page()
 
         self.root.mainloop()
+
+    def on_tab_change(self, _):
+        """refresh portfolio page on tab click"""
+        selected_tab = self.notebook.index(self.notebook.select())
+        if selected_tab == 1:
+            self.create_portfolio_page()
 
     def create_input_page(self):
         """Sets up the input tab"""
@@ -68,22 +76,26 @@ class MyGUI:
         self.fee_input = ttk.Entry(self.input_frame, width = 10)
         self.fee_input.grid(row=1, column=4, sticky="ew")
 
+        self.root.bind("<KeyRelease>", self.submit)
         self.submit = ttk.Button(self.input_frame, text="Submit", command=self.submit)
         self.submit.grid(row=1, column=5, sticky="ew")
 
     def create_portfolio_page(self):
         """Sets up the portfiolio tab"""
-        for i in range(8):
-            self.input_frame.columnconfigure(i, weight=1)
+        for i in range(1):
+            self.input_frame.columnconfigure(i, weight=0)
 
-        self.label32 = tk.Label(self.portfolio_frame,text="hello")
-        self.label32.grid(row=0,column=0)
+        active_list = tk.Listbox(self.portfolio_frame, width=800)
+        active_list.grid(row=1, column=0, sticky="nsew")
+        for stock in self.transaction_handler.get_active_stocks():
+            active_list.insert(tk.END, stock)
 
 
-
-    def submit(self):
+    def submit(self, event = None):
         """Submits the input in the GUI to the backend"""
-
+        if event:
+            if event.keysym != "Return" or self.notebook.index(self.notebook.select()) != 0:
+                return
         for widget in self.input_frame.grid_slaves():
             if widget.grid_info()["row"] == 2:
                 widget.destroy()
@@ -126,7 +138,6 @@ class MyGUI:
         date_today = [today.year, today.month, today.day]
         transaction = Transaction(ticker, type, date_today, quantity, price, fee, quantity)
         self.transaction_handler.upload_transaction(transaction)
-        self.transaction_handler.read_data_base()
 
 
 gui = MyGUI()

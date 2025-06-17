@@ -84,6 +84,14 @@ class TransactionHandler:
         results = cursor.fetchall()
         print(results)
 
+    def get_active_stocks(self):
+        """gets stocks that haven't been sold"""
+        connection = sqlite3.connect("transactions.db")
+        cursor = connection.cursor()
+        cursor.execute("""SELECT * FROM transactions WHERE remaining > 0""")
+        results = cursor.fetchall()
+        return results
+
     def delete_data_base(self):
         """deletes database"""
         connection = sqlite3.connect("transactions.db")
