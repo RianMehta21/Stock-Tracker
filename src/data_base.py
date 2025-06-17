@@ -22,7 +22,7 @@ class Transaction:
     fees: float
     left: float
 
-    def __innit__(self, ticker:str, type:str, date:list, quantity:float, price:float, fees: float, left:float) -> None:
+    def __init__(self, ticker:str, type:str, date:list, quantity:float, price:float, fees: float, left:float) -> None:
         """Initializes values to the arguments"""
         self.ticker = ticker
         self.type = type
@@ -42,24 +42,24 @@ class TransactionHandler:
         cursor = connection.cursor()
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS transactions (
-        id INTEGER AUTO_INCREMENT
-        ticker TEXT
-        type TEXT
-        year NUMERIC
-        month NUMERIC
-        day NUMERIC
-        quantity REAL
-        price REAL
-        fees REAL
-        left REAL        
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ticker TEXT NOT NULL,
+        type TEXT,
+        year INTEGER,
+        month INTEGER,
+        day INTEGER,
+        quantity REAL NOT NULL,
+        price REAL NOT NULL,
+        fees REAL NOT NULL,
+        remaining REAL NOT NULL
         )""")
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS profit (
-        transaction_id INTEGER
-        initial_price REAL
-        final_price REAL
-        profit REAL
+        transaction_id INTEGER,
+        initial_price REAL,
+        final_price REAL,
+        profit REAL,
         FOREIGN KEY (transaction_id) REFERENCES transactions (id)
         )""")
         connection.close()
@@ -69,10 +69,11 @@ class TransactionHandler:
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
         cursor.execute("""
-        INSERT INTO transactions (ticker, type, year, month, day, quantity, price, fees, left)
+        INSERT INTO transactions (ticker, type, year, month, day, quantity, price, fees, remaining)
         values(?, ?, ?, ?, ?, ?, ?, ?, ?) """, (transaction.ticker, transaction.type, transaction.date[0],
                                                 transaction.date[1], transaction.date[2], transaction.quantity,
                                                 transaction.price, transaction.fees, transaction.quantity))
+        connection.commit()
         connection.close()
 
     def read_data_base(self):
@@ -80,6 +81,17 @@ class TransactionHandler:
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
         cursor.execute("""SELECT * FROM transactions""")
+        results = cursor.fetchall()
+        print(results)
+
+    def delete_data_base(self):
+        """deletes database"""
+        connection = sqlite3.connect("transactions.db")
+        cursor = connection.cursor()
+        cursor.execute("""DELETE FROM transactions""")
+        connection.commit()
+        connection.close()
+
 
 
 if __name__ == "__main__":

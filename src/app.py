@@ -9,8 +9,18 @@ from datetime import date
 class MyGUI:
     """Contains all GUI related functions"""
 
-    def __innit__(self):
+    def __init__(self):
         """Creates the GUI window"""
+        self.transaction_handler = TransactionHandler()
+        self.transaction_handler.create_sql()
+        self.create_transaction_page()
+
+    def read(self):
+        self.transaction_handler.read_data_base()
+
+
+    def create_transaction_page(self):
+        """Creates the GUI for the transaction page"""
         self.root = tk.Tk()
         self.root.geometry("1000x500")
         self.root.title("Stock Tracker")
@@ -84,6 +94,11 @@ class MyGUI:
                 fee = float(fee)
             except ValueError:
                 tk.Label(self.input_frame, text="Invalid fee", fg = "red", font=('Roboto', 12)).grid(row=2, column=2, columnspan=2)
+                return
+        if quantity <= 0 or price <= 0 or fee< 0:
+            tk.Label(self.input_frame, text="Quantity, price, and fee should be positive", fg = "red", font=('Roboto', 12)).grid(row=2, column=1, columnspan=4)
+            return
+
         self.ticker_input.delete(0,tk.END)
         self.quantity_input.delete(0,tk.END)
         self.price_input.delete(0,tk.END)
@@ -91,13 +106,9 @@ class MyGUI:
 
         today = datetime.date.today()
         date_today = [today.year, today.month, today.day]
-        #TODO: fix this
-        #transaction = Transaction(ticker, type, date_today, quantity, price, fees, quantity)
-
+        transaction = Transaction(ticker, type, date_today, quantity, price, fee, quantity)
+        self.transaction_handler.upload_transaction(transaction)
+        self.transaction_handler.read_data_base()
 
 
 gui = MyGUI()
-gui.__innit__()
-transaction_handler = TransactionHandler()
-transaction_handler.create_sql()
-transaction_handler.read_data_base()
