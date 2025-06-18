@@ -1,5 +1,6 @@
 """main for stock tracker"""
 import sqlite3
+import yfinance as yf
 
 class Transaction:
     """
@@ -32,6 +33,21 @@ class Transaction:
         self.fees = fees
         self.left = left
 
+class Finance:
+    def check_ticker(self, ticker:str) ->bool:
+        """Returns if ticker is a valid ticker"""
+        try:
+            stock = yf.Ticker(ticker)
+            data = stock.history(period="1d")
+            if not data.empty:
+                return True
+            return False
+        except:
+            return False
+
+    def get_current_price(self, ticker:str):
+        stock = yf.Ticker(ticker)
+        return stock.info["previousClose"]
 
 class TransactionHandler:
     """Handles database related things"""
@@ -90,7 +106,12 @@ class TransactionHandler:
         cursor = connection.cursor()
         cursor.execute("""SELECT * FROM transactions WHERE remaining > 0""")
         results = cursor.fetchall()
-        return results
+        transactions = []
+        for transaction in results:
+            transactions.append(Transaction(transaction[1], transaction[2],
+                                            [transaction[3],transaction[4],transaction[5]], transaction[6],
+                                            transaction[7], transaction[8], transaction[9]))
+        return transactions
 
     def delete_data_base(self):
         """deletes database"""
@@ -99,7 +120,6 @@ class TransactionHandler:
         cursor.execute("""DELETE FROM transactions""")
         connection.commit()
         connection.close()
-
 
 
 if __name__ == "__main__":

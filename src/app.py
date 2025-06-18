@@ -26,11 +26,12 @@ class MyGUI:
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
 
         self.input_frame = tk.Frame(self.notebook, pady=100,padx=200)
-        self.portfolio_frame = tk.Frame(self.notebook, pady=100, padx=200)
+        self.portfolio_frame = tk.Frame(self.notebook, pady=100, padx=50)
 
         self.notebook.add(self.input_frame, text="INPUT TRANSACTION")
         self.notebook.add(self.portfolio_frame, text="PORTFOLIO")
 
+        self.finance = Finance()
         self.transaction_handler = TransactionHandler()
         self.transaction_handler.create_sql()
         self.create_input_page()
@@ -82,13 +83,39 @@ class MyGUI:
 
     def create_portfolio_page(self):
         """Sets up the portfiolio tab"""
-        for i in range(1):
-            self.input_frame.columnconfigure(i, weight=0)
+        for widget in self.portfolio_frame.winfo_children():
+            widget.destroy()
 
-        active_list = tk.Listbox(self.portfolio_frame, width=800)
-        active_list.grid(row=1, column=0, sticky="nsew")
+        active_table = ttk.Treeview(self.portfolio_frame,
+                                    columns = ('ticker', 'quantity', 'price', 'current_price', 'net'),
+                                    show = 'headings')
+        active_table.heading('ticker', text='Ticker')
+        active_table.heading('quantity', text='Quantity')
+        active_table.heading('price', text='Transaction Price')
+        active_table.heading('current_price', text='Current Price')
+        active_table.heading('net', text='Profit/Loss')
+
+        active_table.column('ticker', width=120, anchor=tk.W, stretch=True)
+        active_table.column('quantity', width=150, anchor=tk.CENTER, stretch=True)
+        active_table.column('price', width=150, anchor=tk.CENTER, stretch=True)
+        active_table.column('current_price', width=150, anchor=tk.CENTER, stretch=True)
+        active_table.column('net', width=200, anchor=tk.CENTER, stretch=True)
+
+        active_table.grid(row=0, column=0, sticky="nsew")
+        self.portfolio_frame.columnconfigure(0, weight=1)
+        self.portfolio_frame.rowconfigure(0, weight=1)
+
         for stock in self.transaction_handler.get_active_stocks():
-            active_list.insert(tk.END, stock)
+            curr_price = self.finance.get_current_price(stock.ticker)
+            gain = round(((curr_price - stock.price) * stock.left) - stock.fees, 2)
+
+            gain_str = '$'+str(gain) if gain>0 else "-$"+str(abs(gain))
+            table_entry = (stock.ticker, stock.quantity, "$"+str(stock.price), "$"+str(curr_price), gain_str)
+            item_id=active_table.insert(parent='', index = tk.END, values=table_entry)
+
+            color = 'green' if gain > 0 else 'red'
+            active_table.tag_configure(color, foreground=color)
+            active_table.item(item_id, tags=(color,))
 
 
     def submit(self, event = None):
@@ -106,27 +133,37 @@ class MyGUI:
         price = self.price_input.get()
         fee = self.fee_input.get()
 
-        if not all([quantity, ticker, type, price]):
-            tk.Label(self.input_frame, text="Fill all the values", fg = "red", font=('Roboto', 12)).grid(row=2, column=2, columnspan=2)
+        if not all([quantity, ticker, type, price, fee]):
+            (tk.Label(self.input_frame, text="Fill all the values", fg = "red", font=('Roboto', 12))
+             .grid(row=2, column=0, columnspan=6, sticky="nsew"))
+            return
+        elif not self.finance.check_ticker(ticker):
+            (tk.Label(self.input_frame, text="Invalid ticker (Use country code suffix and check "
+                                             "Yahoo Finance for accurate codes)", fg="red", font=('Roboto', 12))
+             .grid(row=2, column=0, columnspan=6, sticky="nsew"))
             return
         else:
             try:
                 quantity = float(quantity)
             except ValueError:
-                tk.Label(self.input_frame, text="Invalid quantity", fg = "red", font=('Roboto', 12)).grid(row=2, column=2, columnspan=2)
+                (tk.Label(self.input_frame, text="Invalid quantity", fg = "red", font=('Roboto', 12))
+                 .grid(row=2, column=0, columnspan=6, sticky="nsew"))
                 return
             try:
                 price = float(price)
             except ValueError:
-                tk.Label(self.input_frame, text="Invalid price", fg = "red", font=('Roboto', 12)).grid(row=2, column=2, columnspan=2)
+                (tk.Label(self.input_frame, text="Invalid price", fg = "red", font=('Roboto', 12))
+                 .grid(row=2, column=0, columnspan=6, sticky="nsew"))
                 return
             try:
                 fee = float(fee)
             except ValueError:
-                tk.Label(self.input_frame, text="Invalid fee", fg = "red", font=('Roboto', 12)).grid(row=2, column=2, columnspan=2)
+                (tk.Label(self.input_frame, text="Invalid fee", fg = "red", font=('Roboto', 12))
+                 .grid(row=2, column=0, columnspan=6, sticky="nsew"))
                 return
         if quantity <= 0 or price <= 0 or fee< 0:
-            tk.Label(self.input_frame, text="Quantity, price, and fee should be positive", fg = "red", font=('Roboto', 12)).grid(row=2, column=1, columnspan=4)
+            (tk.Label(self.input_frame, text="Quantity, price, and fee should be positive", fg = "red", font=('Roboto', 12))
+             .grid(row=2, column=0, columnspan=6, sticky="nsew"))
             return
 
         self.ticker_input.delete(0,tk.END)
