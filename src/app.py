@@ -2,10 +2,9 @@
 import datetime
 import tkinter as tk
 from tkinter import StringVar, ttk
-from typing import Optional
+from tkinter import messagebox
 
 from data_base import *
-from datetime import date
 
 
 class MyGUI:
@@ -77,7 +76,7 @@ class MyGUI:
         self.fee_input = ttk.Entry(self.input_frame, width = 10)
         self.fee_input.grid(row=1, column=4, sticky="ew")
 
-        self.root.bind("<KeyRelease>", self.submit)
+        self.root.bind("<Return>", self.submit)
         self.submit = ttk.Button(self.input_frame, text="Submit", command=self.submit)
         self.submit.grid(row=1, column=5, sticky="ew")
 
@@ -86,43 +85,58 @@ class MyGUI:
         for widget in self.portfolio_frame.winfo_children():
             widget.destroy()
 
-        active_table = ttk.Treeview(self.portfolio_frame,
-                                    columns = ('ticker', 'quantity', 'price', 'current_price', 'net'),
+        self.active_table = ttk.Treeview(self.portfolio_frame,
+                                    columns = ('id','ticker', 'quantity', 'price', 'current_price', 'net'),
                                     show = 'headings')
-        active_table.heading('ticker', text='Ticker')
-        active_table.heading('quantity', text='Quantity')
-        active_table.heading('price', text='Transaction Price')
-        active_table.heading('current_price', text='Current Price')
-        active_table.heading('net', text='Profit/Loss')
+        self.active_table.heading('ticker', text='Ticker')
+        self.active_table.heading('quantity', text='Quantity')
+        self.active_table.heading('price', text='Cost Price')
+        self.active_table.heading('current_price', text='Current Price')
+        self.active_table.heading('net', text='Profit/Loss')
 
-        active_table.column('ticker', width=120, anchor=tk.W, stretch=True)
-        active_table.column('quantity', width=150, anchor=tk.CENTER, stretch=True)
-        active_table.column('price', width=150, anchor=tk.CENTER, stretch=True)
-        active_table.column('current_price', width=150, anchor=tk.CENTER, stretch=True)
-        active_table.column('net', width=200, anchor=tk.CENTER, stretch=True)
+        self.active_table.column('ticker', width=120, anchor=tk.W, stretch=True)
+        self.active_table.column('quantity', width=150, anchor=tk.CENTER, stretch=True)
+        self.active_table.column('price', width=150, anchor=tk.CENTER, stretch=True)
+        self.active_table.column('current_price', width=150, anchor=tk.CENTER, stretch=True)
+        self.active_table.column('net', width=200, anchor=tk.CENTER, stretch=True)
 
-        active_table.grid(row=0, column=0, sticky="nsew")
+        self.active_table["displaycolumns"] = ['ticker', 'quantity', 'price', 'current_price', 'net']
+
+        self.active_table.grid(row=0, column=0, sticky="nsew")
         self.portfolio_frame.columnconfigure(0, weight=1)
         self.portfolio_frame.rowconfigure(0, weight=1)
 
+        delete_button = ttk.Button(self.portfolio_frame, text="Delete", command = self.delete)
+        delete_button.grid(row=1, column=0)
+        self.root.bind("<BackSpace>", self.delete)
+
         for stock in self.transaction_handler.get_active_stocks():
             curr_price = self.finance.get_current_price(stock.ticker)
-            gain = round(((curr_price - stock.price) * stock.left) - stock.fees, 2)
+            gain = round(((curr_price - stock.price) * stock.left), 2)
 
             gain_str = '$'+str(gain) if gain>0 else "-$"+str(abs(gain))
-            table_entry = (stock.ticker, stock.quantity, "$"+str(stock.price), "$"+str(curr_price), gain_str)
-            item_id=active_table.insert(parent='', index = tk.END, values=table_entry)
+            table_entry = (stock.id, stock.ticker, stock.quantity, "$"+str(stock.price), "$"+str(curr_price), gain_str)
+            item_id=self.active_table.insert(parent='', index = tk.END, values=table_entry)
 
             color = 'green' if gain > 0 else 'red'
-            active_table.tag_configure(color, foreground=color)
-            active_table.item(item_id, tags=(color,))
+            self.active_table.tag_configure(color, foreground=color)
+            self.active_table.item(item_id, tags=color)
 
+    def delete(self, _):
+        """deletes transaction"""
+        focused = self.active_table.focus()
+        if focused and tk.messagebox.showwarning(message='Are you sure you want to delete this transaction.'
+                                                         '\nThis action cannot be undone!',
+                                                        type=tk.messagebox.YESNO) == 'yes':
+            details = self.active_table.item(focused)
+            id = details['values'][0]
+            self.transaction_handler.delete_transaction(id)
+            self.create_portfolio_page()
 
-    def submit(self, event = None):
+    def submit(self, _):
         """Submits the input in the GUI to the backend"""
-        if event:
-            if event.keysym != "Return" or self.notebook.index(self.notebook.select()) != 0:
-                return
+        if self.notebook.index(self.notebook.select()) != 0:
+            return
         for widget in self.input_frame.grid_slaves():
             if widget.grid_info()["row"] == 2:
                 widget.destroy()

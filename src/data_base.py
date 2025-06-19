@@ -7,6 +7,7 @@ class Transaction:
     Represents a single transaction
 
     Instance Attributes:
+        - id: id of the transaction
         - ticker: code of the stock
         - type: either buy/short/sell
         - date: tuple in form of (year, month, day)
@@ -15,6 +16,7 @@ class Transaction:
         - fees: fee for the transaction
         - left: how many shares left
     """
+    id: int
     ticker: str
     type: str
     date: list
@@ -23,7 +25,8 @@ class Transaction:
     fees: float
     left: float
 
-    def __init__(self, ticker:str, type:str, date:list, quantity:float, price:float, fees: float, left:float) -> None:
+    def __init__(self, ticker:str, type:str, date:list, quantity:float, price:float,
+                 fees: float, left:float, id=None) -> None:
         """Initializes values to the arguments"""
         self.ticker = ticker
         self.type = type
@@ -32,8 +35,11 @@ class Transaction:
         self.price = price
         self.fees = fees
         self.left = left
+        if id:
+            self.id = id
 
 class Finance:
+    """Handles finance related"""
     def check_ticker(self, ticker:str) ->bool:
         """Returns if ticker is a valid ticker"""
         try:
@@ -47,7 +53,7 @@ class Finance:
 
     def get_current_price(self, ticker:str):
         stock = yf.Ticker(ticker)
-        return stock.info["previousClose"]
+        return stock.info["regularMarketPrice"]
 
 class TransactionHandler:
     """Handles database related things"""
@@ -84,11 +90,12 @@ class TransactionHandler:
         """Uploads the current transaction to the database"""
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
+        transaction_cost = (transaction.price+transaction.fees)/transaction.quantity
         cursor.execute("""
         INSERT INTO transactions (ticker, type, year, month, day, quantity, price, fees, remaining)
         values(?, ?, ?, ?, ?, ?, ?, ?, ?) """, (transaction.ticker, transaction.type, transaction.date[0],
                                                 transaction.date[1], transaction.date[2], transaction.quantity,
-                                                transaction.price, transaction.fees, transaction.quantity))
+                                                transaction_cost, transaction.fees, transaction.quantity))
         connection.commit()
         connection.close()
 
@@ -110,8 +117,16 @@ class TransactionHandler:
         for transaction in results:
             transactions.append(Transaction(transaction[1], transaction[2],
                                             [transaction[3],transaction[4],transaction[5]], transaction[6],
-                                            transaction[7], transaction[8], transaction[9]))
+                                            transaction[7], transaction[8], transaction[9], transaction[0]))
         return transactions
+
+    def delete_transaction(self,id:int):
+        """deletes transaction"""
+        connection = sqlite3.connect('transactions.db')
+        cursor = connection.cursor()
+        cursor.execute("""DELETE FROM transactions WHERE id = ?""", (id,))
+        connection.commit()
+        connection.close()
 
     def delete_data_base(self):
         """deletes database"""
