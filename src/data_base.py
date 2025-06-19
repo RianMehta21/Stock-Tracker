@@ -25,10 +25,13 @@ class Transaction:
 
     def __init__(self, ticker:str, type:str, date:list, quantity:float, price:float, left:float, id=None) -> None:
         """Initializes values to the arguments"""
-        self.ticker = ticker
+        self.ticker = ticker.upper()
         self.type = type
         self.date = date
-        self.quantity = quantity
+        if self.type == "SHORT":
+            self.quantity = (-1) * quantity
+        else:
+            self.quantity = quantity
         self.price = price
         self.left = left
         if id:
