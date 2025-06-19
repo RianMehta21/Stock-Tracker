@@ -13,7 +13,6 @@ class Transaction:
         - date: tuple in form of (year, month, day)
         - quantity: number of stocks
         - price: price of the buy/sell
-        - fees: fee for the transaction
         - left: how many shares left
     """
     id: int
@@ -22,18 +21,15 @@ class Transaction:
     date: list
     quantity: float
     price: float
-    fees: float
     left: float
 
-    def __init__(self, ticker:str, type:str, date:list, quantity:float, price:float,
-                 fees: float, left:float, id=None) -> None:
+    def __init__(self, ticker:str, type:str, date:list, quantity:float, price:float, left:float, id=None) -> None:
         """Initializes values to the arguments"""
         self.ticker = ticker
         self.type = type
         self.date = date
         self.quantity = quantity
         self.price = price
-        self.fees = fees
         self.left = left
         if id:
             self.id = id
@@ -52,8 +48,20 @@ class Finance:
             return False
 
     def get_current_price(self, ticker:str):
+        """gets the current market price of the stock"""
         stock = yf.Ticker(ticker)
         return stock.info["regularMarketPrice"]
+
+    def calculate_profit(self, stock:Transaction, curr_price:int):
+        """calculates gain/loss"""
+        if stock.type == "BUY":
+            gain = round(((curr_price - stock.price) * stock.left), 2)
+        elif stock.type == "SHORT":
+            gain = round(((stock.price - curr_price) * stock.left), 2)
+        else:
+            return
+        return gain
+
 
 class TransactionHandler:
     """Handles database related things"""
@@ -72,7 +80,6 @@ class TransactionHandler:
         day INTEGER,
         quantity REAL NOT NULL,
         price REAL NOT NULL,
-        fees REAL NOT NULL,
         remaining REAL NOT NULL
         )""")
 
@@ -90,12 +97,11 @@ class TransactionHandler:
         """Uploads the current transaction to the database"""
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
-        transaction_cost = (transaction.price+transaction.fees)/transaction.quantity
         cursor.execute("""
-        INSERT INTO transactions (ticker, type, year, month, day, quantity, price, fees, remaining)
-        values(?, ?, ?, ?, ?, ?, ?, ?, ?) """, (transaction.ticker, transaction.type, transaction.date[0],
+        INSERT INTO transactions (ticker, type, year, month, day, quantity, price, remaining)
+        values(?, ?, ?, ?, ?, ?, ?, ?) """, (transaction.ticker, transaction.type, transaction.date[0],
                                                 transaction.date[1], transaction.date[2], transaction.quantity,
-                                                transaction_cost, transaction.fees, transaction.quantity))
+                                                transaction.price, transaction.quantity))
         connection.commit()
         connection.close()
 
@@ -117,7 +123,7 @@ class TransactionHandler:
         for transaction in results:
             transactions.append(Transaction(transaction[1], transaction[2],
                                             [transaction[3],transaction[4],transaction[5]], transaction[6],
-                                            transaction[7], transaction[8], transaction[9], transaction[0]))
+                                            transaction[7], transaction[8], transaction[0]))
         return transactions
 
     def delete_transaction(self,id:int):

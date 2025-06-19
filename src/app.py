@@ -102,20 +102,20 @@ class MyGUI:
 
         self.active_table["displaycolumns"] = ['ticker', 'quantity', 'price', 'current_price', 'net']
 
-        self.active_table.grid(row=0, column=0, sticky="nsew")
+        self.active_table.grid(row=0, column=0, columnspan=2, sticky="nsew")
         self.portfolio_frame.columnconfigure(0, weight=1)
         self.portfolio_frame.rowconfigure(0, weight=1)
 
         delete_button = ttk.Button(self.portfolio_frame, text="Delete", command = self.delete)
-        delete_button.grid(row=1, column=0)
+        delete_button.grid(row=2, column=1, columnspan=2)
         self.root.bind("<BackSpace>", self.delete)
 
         for stock in self.transaction_handler.get_active_stocks():
             curr_price = self.finance.get_current_price(stock.ticker)
-            gain = round(((curr_price - stock.price) * stock.left), 2)
-
-            gain_str = '$'+str(gain) if gain>0 else "-$"+str(abs(gain))
-            table_entry = (stock.id, stock.ticker, stock.quantity, "$"+str(stock.price), "$"+str(curr_price), gain_str)
+            gain = self.finance.calculate_profit(stock, curr_price)
+            gain_str = '$' + str(gain) if gain > 0 else "-$" + str(abs(gain))
+            table_entry = (stock.id, stock.type + " " + stock.ticker, stock.quantity,
+                           "$"+str(stock.price), "$"+str(curr_price), gain_str)
             item_id=self.active_table.insert(parent='', index = tk.END, values=table_entry)
 
             color = 'green' if gain > 0 else 'red'
@@ -187,7 +187,9 @@ class MyGUI:
 
         today = datetime.date.today()
         date_today = [today.year, today.month, today.day]
-        transaction = Transaction(ticker, type, date_today, quantity, price, fee, quantity)
+
+        fee_weighted_price = round((price*quantity + fee)/quantity,2)
+        transaction = Transaction(ticker, type, date_today, quantity, fee_weighted_price, quantity)
         self.transaction_handler.upload_transaction(transaction)
 
 
