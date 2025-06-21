@@ -105,15 +105,16 @@ class TransactionHandler:
         connection.commit()
         connection.close()
 
-    def read_data_base(self):
-        """reads database"""
+    def sell_transaction(self, ticker:str, quantity:int):
+        """Handles the selling of a ticker"""
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
-        cursor.execute("""SELECT * FROM transactions""")
+        cursor.execute("""SELECT * FROM transactions WHERE remaining != 0 """)
         results = cursor.fetchall()
         print(results)
+        connection.close()
 
-    def get_active_stocks(self):
+    def get_active_stocks(self) -> list:
         """gets stocks that haven't been sold"""
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
@@ -124,6 +125,8 @@ class TransactionHandler:
             transactions.append(Transaction(transaction[1], transaction[2],
                                             [transaction[3],transaction[4],transaction[5]], transaction[6],
                                             transaction[7], transaction[8], transaction[0]))
+
+        connection.close()
         return transactions
 
     def delete_transaction(self,id:int):
