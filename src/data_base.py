@@ -28,10 +28,7 @@ class Transaction:
         self.ticker = ticker.upper()
         self.type = type
         self.date = date
-        if self.type == "SHORT":
-            self.quantity = (-1) * quantity
-        else:
-            self.quantity = quantity
+        self.quantity = quantity
         self.price = price
         self.left = left
         if id:
@@ -60,7 +57,7 @@ class Finance:
         if stock.type == "BUY":
             gain = round(((curr_price - stock.price) * stock.left), 2)
         elif stock.type == "SHORT":
-            gain = round(((stock.price - curr_price) * stock.left), 2)
+            gain = round(((stock.price - curr_price) * abs(stock.left)), 2)
         else:
             return
         return gain
@@ -120,7 +117,7 @@ class TransactionHandler:
         """gets stocks that haven't been sold"""
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
-        cursor.execute("""SELECT * FROM transactions WHERE remaining > 0""")
+        cursor.execute("""SELECT * FROM transactions WHERE remaining != 0""")
         results = cursor.fetchall()
         transactions = []
         for transaction in results:
@@ -144,7 +141,3 @@ class TransactionHandler:
         cursor.execute("""DELETE FROM transactions""")
         connection.commit()
         connection.close()
-
-
-if __name__ == "__main__":
-    ...

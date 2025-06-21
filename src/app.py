@@ -187,7 +187,9 @@ class MyGUI:
         today = datetime.date.today()
         date_today = [today.year, today.month, today.day]
 
-        fee_weighted_price = round((price*quantity + fee)/quantity,2)
+        fee_weighted_price = round((price * quantity + fee) / quantity, 2)
+        if type == "SHORT":
+            quantity = (-1) * quantity
         transaction = Transaction(ticker, type, date_today, quantity, fee_weighted_price, quantity)
         self.transaction_handler.upload_transaction(transaction)
 
