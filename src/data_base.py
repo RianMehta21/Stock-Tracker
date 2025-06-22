@@ -109,9 +109,26 @@ class TransactionHandler:
         """Handles the selling of a ticker"""
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
-        cursor.execute("""SELECT * FROM transactions WHERE remaining != 0 """)
+        cursor.execute("""SELECT * FROM transactions WHERE remaining != 0 AND ticker = ?""", (ticker.upper(),))
         results = cursor.fetchall()
-        print(results)
+        index = 0
+        total_available = sum(row[8] for row in results)
+        print(total_available)
+        while quantity > 0:
+            transaction = results[index]
+            if transaction[8] <= quantity:
+                cursor.execute("""SELECT remaining, price FROM transactions WHERE id = ?""", (transaction[0],))
+                q_sold = cursor.fetchall()[0]
+                cursor.execute("""UPDATE transactions SET remaining = ? WHERE id = ?""", (0, transaction[0]))
+                connection.commit()
+                quantity -= q_sold
+            else:
+                cursor.execute("""UPDATE transaction SET remaining = (remaining - ?) WHERE id = ?""",
+                               (quantity, transaction[0]))
+                connection.commit()
+                quantity = 0
+            index += 1
+
         connection.close()
 
     def get_active_stocks(self) -> list:

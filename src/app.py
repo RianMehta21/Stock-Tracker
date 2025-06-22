@@ -114,7 +114,11 @@ class MyGUI:
             curr_price = self.finance.get_current_price(stock.ticker)
             gain = self.finance.calculate_profit(stock, curr_price)
             gain_str = '$' + str(gain) if gain > 0 else "-$" + str(abs(gain))
-            table_entry = (stock.id, stock.ticker, stock.quantity, "$"+str(stock.price), "$"+str(curr_price), gain_str)
+            if stock.type == "SHORT":
+                quantity = (-1)*stock.quantity
+            else:
+                quantity = stock.quantity
+            table_entry = (stock.id, stock.ticker, quantity, "$"+str(stock.price), "$"+str(curr_price), gain_str)
             item_id=self.active_table.insert(parent='', index = tk.END, values=table_entry)
 
             color = 'green' if gain > 0 else 'red'
