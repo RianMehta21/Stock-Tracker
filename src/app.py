@@ -106,9 +106,9 @@ class MyGUI:
         self.portfolio_frame.columnconfigure(0, weight=1)
         self.portfolio_frame.rowconfigure(0, weight=1)
 
-        delete_button = ttk.Button(self.portfolio_frame, text="Delete", command = self.delete)
-        delete_button.grid(row=2, column=1, columnspan=2)
         self.root.bind("<BackSpace>", self.delete)
+        self.delete_button = ttk.Button(self.portfolio_frame, text="Delete", command = self.delete)
+        self.delete_button.grid(row=2, column=1, columnspan=2)
 
         for stock in self.transaction_handler.get_active_stocks():
             curr_price = self.finance.get_current_price(stock.ticker)
@@ -125,7 +125,7 @@ class MyGUI:
             self.active_table.tag_configure(color, foreground=color)
             self.active_table.item(item_id, tags=color)
 
-    def delete(self, _):
+    def delete(self, _=None):
         """deletes transaction"""
         focused = self.active_table.focus()
         if focused and tk.messagebox.showwarning(message='Are you sure you want to delete this transaction.'
@@ -136,7 +136,7 @@ class MyGUI:
             self.transaction_handler.delete_transaction(id)
             self.create_portfolio_page()
 
-    def submit(self, _):
+    def submit(self, _=None):
         """Submits the input in the GUI to the backend"""
         if self.notebook.index(self.notebook.select()) != 0:
             return
