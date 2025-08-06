@@ -9,10 +9,10 @@ class Transaction:
     Instance Attributes:
         - id: id of the transaction
         - ticker: code of the stock
-        - type: either buy/short/sell
+        - type: either buy/short
         - date: tuple in form of (year, month, day)
         - quantity: number of stocks
-        - price: price of the buy/sell
+        - price: price of the buy/short
         - left: how many shares left
     """
     id: int
@@ -160,4 +160,24 @@ class TransactionHandler:
         cursor = connection.cursor()
         cursor.execute("""DELETE FROM transactions""")
         connection.commit()
+        connection.close()
+
+    def read_transaction(self):
+        """gets stocks that haven't been sold"""
+        connection = sqlite3.connect("transactions.db")
+        cursor = connection.cursor()
+        cursor.execute("""SELECT * FROM transactions""")
+        results = cursor.fetchall()
+        for transaction in results:
+            print(transaction)
+        connection.close()
+
+    def read_profit(self):
+        """gets stocks that haven't been sold"""
+        connection = sqlite3.connect("transactions.db")
+        cursor = connection.cursor()
+        cursor.execute("""SELECT * FROM profit""")
+        results = cursor.fetchall()
+        for transaction in results:
+            print(transaction)
         connection.close()

@@ -48,7 +48,7 @@ class MyGUI:
         for i in range(6):
             self.input_frame.columnconfigure(i, weight=1)
 
-        options = ["BUY", "SHORT", "SELL"]
+        options = ["BUY", "SHORT"]
         self.type_input = StringVar()
         self.type_input.set(options[0])
         self.drop_down = tk.OptionMenu(self.input_frame, self.type_input, *options)
@@ -102,13 +102,20 @@ class MyGUI:
 
         self.active_table["displaycolumns"] = ['ticker', 'quantity', 'price', 'current_price', 'net']
 
-        self.active_table.grid(row=0, column=0, columnspan=2, sticky="nsew")
+        self.active_table.grid(row=0, column=0, columnspan=3, sticky="nsew")
         self.portfolio_frame.columnconfigure(0, weight=1)
         self.portfolio_frame.rowconfigure(0, weight=1)
 
-        self.root.bind("<BackSpace>", self.delete)
+        self.quantity_sell_text = tk.Label(self.portfolio_frame, text="Quantity: ")
+        self.quantity_sell_text.grid(row=2, column=0, sticky = "e")
+        self.sell_input = ttk.Entry(self.portfolio_frame, width = 10)
+        self.sell_input.grid(row=2, column = 1, sticky = "e")
+        self.sell_button = ttk.Button(self.portfolio_frame, text="Sell", command = self.sell)
+        self.sell_button.grid(row=2, column = 2)
+
+        self.active_table.bind("<BackSpace>", self.delete)
         self.delete_button = ttk.Button(self.portfolio_frame, text="Delete", command = self.delete)
-        self.delete_button.grid(row=2, column=1, columnspan=2)
+        self.delete_button.grid(row=3, column=2, columnspan=2)
 
         for stock in self.transaction_handler.get_active_stocks():
             curr_price = self.finance.get_current_price(stock.ticker)
@@ -125,8 +132,14 @@ class MyGUI:
             self.active_table.tag_configure(color, foreground=color)
             self.active_table.item(item_id, tags=color)
 
+    def sell(self, _=None):
+        """sells selected transaction"""
+        # TODO: implement
+
     def delete(self, _=None):
-        """deletes transaction"""
+        """deletes selected transaction"""
+        if self.notebook.index(self.notebook.select()) != 1:
+            return
         focused = self.active_table.focus()
         if focused and tk.messagebox.showwarning(message='Are you sure you want to delete this transaction.'
                                                          '\nThis action cannot be undone!',
