@@ -103,23 +103,50 @@ class MyGUI:
 
         self.active_table["displaycolumns"] = ['ticker', 'quantity', 'price', 'current_price', 'net']
 
-        self.active_table.grid(row=0, column=0, columnspan=5, pady=10, sticky="nsew")
+        self.active_table.grid(row=0, column=0, columnspan=4, sticky="nsew")
         self.portfolio_frame.columnconfigure(0, weight=1)
         self.portfolio_frame.rowconfigure(0, weight=1)
 
-        self.quantity_sell_text = tk.Label(self.portfolio_frame, text="Quantity: ")
-        self.quantity_sell_text.grid(row=2, column=0, sticky = "e")
-        self.sell_input = ttk.Entry(self.portfolio_frame, width = 10)
-        self.sell_input.grid(row=2, column = 1, sticky = "e")
+        quantity_text = "Enter quantity: "
+        self.sell_quantity_input = ttk.Entry(self.portfolio_frame, width = 10, foreground="grey")
+        self.sell_quantity_input.insert(0, quantity_text)
+        self.sell_quantity_input.grid(row=3, column = 1, sticky = "e")
+
+        price_text = "Enter price: "
+        self.sell_price_input = ttk.Entry(self.portfolio_frame, width = 10, foreground="grey")
+        self.sell_price_input.insert(0, price_text)
+        self.sell_price_input.grid(row=3, column = 2, sticky = "e")
+
+        def on_click(_, placeholder_text, widget) -> None:
+            """
+                Changes the input text to white so that it is easier for user to see what they are typing.
+            """
+            if widget.get() == placeholder_text:
+                widget.delete(0, tk.END)
+                widget.configure(foreground="white")
+
+        def on_focus_out(_, placeholder_text, widget) -> None:
+            """
+                Changes the input text to gray again after checking that there is no possible input.
+            """
+            if widget.get() == "":
+                widget.insert(0, placeholder_text)
+                widget.configure(foreground="grey")
+
+        self.sell_quantity_input.bind("<FocusIn>", lambda event: on_click(event, quantity_text, self.sell_quantity_input))
+        self.sell_quantity_input.bind("<FocusOut>", lambda event: on_focus_out(event, quantity_text, self.sell_quantity_input))
+        self.sell_price_input.bind("<FocusIn>", lambda event: on_click(event, price_text, self.sell_price_input))
+        self.sell_price_input.bind("<FocusOut>", lambda event: on_focus_out(event, price_text, self.sell_price_input))
+
         self.sell_button = tk.Button(self.portfolio_frame, text="Sell", command = self.sell, fg="green")
-        self.sell_button.grid(row=2, column = 2)
+        self.sell_button.grid(row=3, column = 3, sticky = "ew")
 
         self.active_table.bind("<BackSpace>", self.delete)
         self.delete_button = tk.Button(self.portfolio_frame, text="Delete", command = self.delete, fg="red")
-        self.delete_button.grid(row=2, column=4)
+        self.delete_button.grid(row=4, column=3)
 
         self.error_label = tk.Label(self.portfolio_frame, text="", fg="red", font=('Roboto', 12))
-        self.error_label.grid(row = 3, column = 1, columnspan=4, sticky = "ew")
+        self.error_label.grid(row = 4, column = 1, columnspan=2, sticky = "ew")
 
         for stock in self.transaction_handler.get_active_stocks():
             curr_price = self.finance.get_current_price(stock.ticker)
@@ -145,7 +172,9 @@ class MyGUI:
         details = self.active_table.item(focused)
         sell_id = details["values"][0]
 
-        sell_quantity = self.sell_input.get()
+        sell_quantity = self.sell_quantity_input.get()
+        sell_price = self.sell_price_input.get()
+
         try:
             sell_quantity = round(float(sell_quantity), 1)
         except ValueError:
@@ -153,13 +182,23 @@ class MyGUI:
             return
         if sell_quantity <= 0:
             self.error_label.configure(text="Invalid quantity")
-
-
-
-        if self.transaction_handler.sell_transaction(sell_id, sell_quantity) == 0:
-            self.error_label.configure(text="Quantity is more than available shares")
             return
 
+        remaining = self.transaction_handler.get_remaining(sell_id)
+        if remaining < sell_quantity:
+            self.error_label.configure(text="Quantity exceeds available shares")
+            return
+
+        try:
+            sell_price = round(float(sell_price), 1)
+        except ValueError:
+            self.error_label.configure(text="Invalid price")
+            return
+        if sell_price <= 0:
+            self.error_label.configure(text="Invalid price")
+            return
+
+        self.transaction_handler.sell_transaction(sell_id, sell_quantity)
         self.create_portfolio_page()
 
 
@@ -167,7 +206,11 @@ class MyGUI:
         """deletes selected transaction"""
         if self.notebook.index(self.notebook.select()) != 1:
             return
+
         focused = self.active_table.focus()
+        if focused == "":
+            self.error_label.configure(text="Select from table")
+            return
         if focused and tk.messagebox.showwarning(message='Are you sure you want to delete this transaction.'
                                                          '\nThis action cannot be undone!',
                                                         type=tk.messagebox.YESNO) == 'yes':

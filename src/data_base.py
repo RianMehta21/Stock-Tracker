@@ -104,22 +104,24 @@ class TransactionHandler:
         connection.commit()
         connection.close()
 
+    def get_remaining(self, get_id:int):
+        """returns the amount of stocks remaining for a given id"""
+        connection = sqlite3.connect("transactions.db")
+        cursor = connection.cursor()
+        cursor.execute("""SELECT * FROM transactions WHERE id = ?""", (get_id,))
+        results = cursor.fetchall()[0]
+        return results[8]
+
     def sell_transaction(self, sell_id:int, quantity:float):
         """Handles the selling of a ticker"""
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
-        cursor.execute("""SELECT * FROM transactions WHERE id = ?""", (sell_id,))
-        results = cursor.fetchall()[0]
-        if results[8] <= quantity:
-            return 0
 
-        else:
-            cursor.execute("""UPDATE transactions SET remaining = (remaining - ?) WHERE id = ?""",
+        cursor.execute("""UPDATE transactions SET remaining = (remaining - ?) WHERE id = ?""",
                            (quantity, sell_id))
-            connection.commit()
+        connection.commit()
 
         connection.close()
-        return 1
 
     def get_active_stocks(self) -> list:
         """gets stocks that haven't been sold"""
