@@ -23,14 +23,14 @@ class Transaction:
     price: float
     left: float
 
-    def __init__(self, ticker:str, type:str, date:list, quantity:float, price:float, left:float, id=None) -> None:
+    def __init__(self, ticker:str, type:str, date:list, quantity:float, price:float, remaining:float, id=None) -> None:
         """Initializes values to the arguments"""
         self.ticker = ticker.upper()
         self.type = type
         self.date = date
         self.quantity = quantity
         self.price = price
-        self.left = left
+        self.remaining = remaining
         if id:
             self.id = id
 
@@ -55,9 +55,9 @@ class Finance:
     def calculate_profit(self, stock:Transaction, curr_price:int):
         """calculates gain/loss"""
         if stock.type == "BUY":
-            gain = round(((curr_price - stock.price) * stock.left), 2)
+            gain = round(((curr_price - stock.price) * stock.remaining), 2)
         elif stock.type == "SHORT":
-            gain = round(((stock.price - curr_price) * abs(stock.left)), 2)
+            gain = round(((stock.price - curr_price) * abs(stock.remaining)), 2)
         else:
             return
         return gain
@@ -87,7 +87,6 @@ class TransactionHandler:
         CREATE TABLE IF NOT EXISTS profit (
         transaction_id INTEGER,
         initial_price REAL,
-        final_price REAL,
         profit REAL,
         FOREIGN KEY (transaction_id) REFERENCES transactions (id)
         )""")
@@ -105,37 +104,28 @@ class TransactionHandler:
         connection.commit()
         connection.close()
 
-    def sell_transaction(self, ticker:str, quantity:int):
+    def sell_transaction(self, sell_id:int, quantity:float):
         """Handles the selling of a ticker"""
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
-        cursor.execute("""SELECT * FROM transactions WHERE remaining != 0 AND ticker = ?""", (ticker.upper(),))
-        results = cursor.fetchall()
-        index = 0
-        total_available = sum(row[8] for row in results)
-        print(total_available)
-        while quantity > 0:
-            transaction = results[index]
-            if transaction[8] <= quantity:
-                cursor.execute("""SELECT remaining, price FROM transactions WHERE id = ?""", (transaction[0],))
-                q_sold = cursor.fetchall()[0]
-                cursor.execute("""UPDATE transactions SET remaining = ? WHERE id = ?""", (0, transaction[0]))
-                connection.commit()
-                quantity -= q_sold
-            else:
-                cursor.execute("""UPDATE transaction SET remaining = (remaining - ?) WHERE id = ?""",
-                               (quantity, transaction[0]))
-                connection.commit()
-                quantity = 0
-            index += 1
+        cursor.execute("""SELECT * FROM transactions WHERE id = ?""", (sell_id,))
+        results = cursor.fetchall()[0]
+        if results[8] <= quantity:
+            return 0
+
+        else:
+            cursor.execute("""UPDATE transactions SET remaining = (remaining - ?) WHERE id = ?""",
+                           (quantity, sell_id))
+            connection.commit()
 
         connection.close()
+        return 1
 
     def get_active_stocks(self) -> list:
         """gets stocks that haven't been sold"""
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
-        cursor.execute("""SELECT * FROM transactions WHERE remaining != 0""")
+        cursor.execute("""SELECT * FROM transactions WHERE remaining > 0""")
         results = cursor.fetchall()
         transactions = []
         for transaction in results:

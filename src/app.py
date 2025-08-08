@@ -4,6 +4,8 @@ import tkinter as tk
 from tkinter import StringVar, ttk
 from tkinter import messagebox
 
+from platformdirs.windows import get_win_folder
+
 from data_base import *
 
 
@@ -13,7 +15,7 @@ class MyGUI:
     def __init__(self):
         """Creates the GUI window and transaction handler"""
         self.root = tk.Tk()
-        self.root.geometry("1000x500")
+        self.root.geometry("1250x600")
         self.root.title("Stock Tracker")
 
         style = ttk.Style()
@@ -84,10 +86,9 @@ class MyGUI:
         """Sets up the portfiolio tab"""
         for widget in self.portfolio_frame.winfo_children():
             widget.destroy()
-
         self.active_table = ttk.Treeview(self.portfolio_frame,
                                     columns = ('id','ticker', 'quantity', 'price', 'current_price', 'net'),
-                                    show = 'headings')
+                                    show = 'headings', selectmode=tk.BROWSE)
         self.active_table.heading('ticker', text='Ticker')
         self.active_table.heading('quantity', text='Quantity')
         self.active_table.heading('price', text='Cost Price')
@@ -102,7 +103,7 @@ class MyGUI:
 
         self.active_table["displaycolumns"] = ['ticker', 'quantity', 'price', 'current_price', 'net']
 
-        self.active_table.grid(row=0, column=0, columnspan=3, sticky="nsew")
+        self.active_table.grid(row=0, column=0, columnspan=5, pady=10, sticky="nsew")
         self.portfolio_frame.columnconfigure(0, weight=1)
         self.portfolio_frame.rowconfigure(0, weight=1)
 
@@ -110,21 +111,24 @@ class MyGUI:
         self.quantity_sell_text.grid(row=2, column=0, sticky = "e")
         self.sell_input = ttk.Entry(self.portfolio_frame, width = 10)
         self.sell_input.grid(row=2, column = 1, sticky = "e")
-        self.sell_button = ttk.Button(self.portfolio_frame, text="Sell", command = self.sell)
+        self.sell_button = tk.Button(self.portfolio_frame, text="Sell", command = self.sell, fg="green")
         self.sell_button.grid(row=2, column = 2)
 
         self.active_table.bind("<BackSpace>", self.delete)
-        self.delete_button = ttk.Button(self.portfolio_frame, text="Delete", command = self.delete)
-        self.delete_button.grid(row=3, column=2, columnspan=2)
+        self.delete_button = tk.Button(self.portfolio_frame, text="Delete", command = self.delete, fg="red")
+        self.delete_button.grid(row=2, column=4)
+
+        self.error_label = tk.Label(self.portfolio_frame, text="", fg="red", font=('Roboto', 12))
+        self.error_label.grid(row = 3, column = 1, columnspan=4, sticky = "ew")
 
         for stock in self.transaction_handler.get_active_stocks():
             curr_price = self.finance.get_current_price(stock.ticker)
             gain = self.finance.calculate_profit(stock, curr_price)
             gain_str = '$' + str(gain) if gain > 0 else "-$" + str(abs(gain))
             if stock.type == "SHORT":
-                quantity = (-1)*stock.quantity
+                quantity = (-1)*stock.remaining
             else:
-                quantity = stock.quantity
+                quantity = stock.remaining
             table_entry = (stock.id, stock.ticker, quantity, "$"+str(stock.price), "$"+str(curr_price), gain_str)
             item_id=self.active_table.insert(parent='', index = tk.END, values=table_entry)
 
@@ -134,7 +138,30 @@ class MyGUI:
 
     def sell(self, _=None):
         """sells selected transaction"""
-        # TODO: implement
+        focused = self.active_table.focus()
+        if focused == "":
+            self.error_label.configure(text="Select from table")
+            return
+        details = self.active_table.item(focused)
+        sell_id = details["values"][0]
+
+        sell_quantity = self.sell_input.get()
+        try:
+            sell_quantity = round(float(sell_quantity), 1)
+        except ValueError:
+            self.error_label.configure(text="Invalid quantity")
+            return
+        if sell_quantity <= 0:
+            self.error_label.configure(text="Invalid quantity")
+
+
+
+        if self.transaction_handler.sell_transaction(sell_id, sell_quantity) == 0:
+            self.error_label.configure(text="Quantity is more than available shares")
+            return
+
+        self.create_portfolio_page()
+
 
     def delete(self, _=None):
         """deletes selected transaction"""
@@ -174,7 +201,7 @@ class MyGUI:
             return
         else:
             try:
-                quantity = float(quantity)
+                quantity = round(float(quantity), 1)
             except ValueError:
                 (tk.Label(self.input_frame, text="Invalid quantity", fg = "red", font=('Roboto', 12))
                  .grid(row=2, column=0, columnspan=6, sticky="nsew"))
