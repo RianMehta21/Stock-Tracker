@@ -1,5 +1,6 @@
 """"The GUI for main.py"""
-import datetime
+
+from data_base import get_date
 import tkinter as tk
 from tkinter import StringVar, ttk
 from tkinter import messagebox
@@ -24,7 +25,7 @@ class MyGUI:
         self.notebook.pack(fill=tk.BOTH, expand=True)
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
 
-        self.input_frame = tk.Frame(self.notebook, pady=100,padx=200)
+        self.input_frame = tk.Frame(self.notebook, pady=100, padx=200)
         self.portfolio_frame = tk.Frame(self.notebook, pady=100, padx=50)
 
         self.notebook.add(self.input_frame, text="INPUT TRANSACTION")
@@ -54,7 +55,6 @@ class MyGUI:
         self.drop_down = tk.OptionMenu(self.input_frame, self.type_input, *options)
         self.drop_down.grid(row=1, column=0, sticky="ew")
 
-
         self.ticker_header = tk.Label(self.input_frame, text="Ticker")
         self.ticker_header.grid(row=0, column=1)
         self.quantity_header = tk.Label(self.input_frame, text="Quantity")
@@ -62,18 +62,18 @@ class MyGUI:
         self.price_header = tk.Label(self.input_frame, text="Price")
         self.price_header.grid(row=0, column=3)
         self.fee_header = tk.Label(self.input_frame, text="Fee")
-        self.fee_header.grid(row=0,column=4)
+        self.fee_header.grid(row=0, column=4)
 
-        self.ticker_input = ttk.Entry(self.input_frame, width = 10)
+        self.ticker_input = ttk.Entry(self.input_frame, width=10)
         self.ticker_input.grid(row=1, column=1, sticky="ew")
 
-        self.quantity_input = ttk.Entry(self.input_frame, width = 10)
+        self.quantity_input = ttk.Entry(self.input_frame, width=10)
         self.quantity_input.grid(row=1, column=2, sticky="ew")
 
-        self.price_input = ttk.Entry(self.input_frame, width = 10)
+        self.price_input = ttk.Entry(self.input_frame, width=10)
         self.price_input.grid(row=1, column=3, sticky="ew")
 
-        self.fee_input = ttk.Entry(self.input_frame, width = 10)
+        self.fee_input = ttk.Entry(self.input_frame, width=10)
         self.fee_input.grid(row=1, column=4, sticky="ew")
 
         self.root.bind("<Return>", self.submit)
@@ -88,8 +88,8 @@ class MyGUI:
         self.update_profits()
 
         self.active_table = ttk.Treeview(self.portfolio_frame,
-                                    columns = ('id','ticker', 'quantity', 'price', 'current_price', 'net'),
-                                    show = 'headings', selectmode=tk.BROWSE)
+                                         columns=('id', 'ticker', 'quantity', 'price', 'current_price', 'net'),
+                                         show='headings', selectmode=tk.BROWSE)
         self.active_table.heading('ticker', text='Ticker')
         self.active_table.heading('quantity', text='Quantity')
         self.active_table.heading('price', text='Cost Price')
@@ -109,14 +109,14 @@ class MyGUI:
         self.portfolio_frame.rowconfigure(0, weight=1)
 
         quantity_text = "Enter quantity: "
-        self.sell_quantity_input = ttk.Entry(self.portfolio_frame, width = 10, foreground="grey")
+        self.sell_quantity_input = ttk.Entry(self.portfolio_frame, width=10, foreground="grey")
         self.sell_quantity_input.insert(0, quantity_text)
-        self.sell_quantity_input.grid(row=3, column = 1, sticky = "e")
+        self.sell_quantity_input.grid(row=3, column=1, sticky="e")
 
         price_text = "Enter price: "
-        self.sell_price_input = ttk.Entry(self.portfolio_frame, width = 10, foreground="grey")
+        self.sell_price_input = ttk.Entry(self.portfolio_frame, width=10, foreground="grey")
         self.sell_price_input.insert(0, price_text)
-        self.sell_price_input.grid(row=3, column = 2, sticky = "e")
+        self.sell_price_input.grid(row=3, column=2, sticky="e")
 
         def on_click(_, placeholder_text, widget) -> None:
             """
@@ -134,31 +134,33 @@ class MyGUI:
                 widget.insert(0, placeholder_text)
                 widget.configure(foreground="grey")
 
-        self.sell_quantity_input.bind("<FocusIn>", lambda event: on_click(event, quantity_text, self.sell_quantity_input))
-        self.sell_quantity_input.bind("<FocusOut>", lambda event: on_focus_out(event, quantity_text, self.sell_quantity_input))
+        self.sell_quantity_input.bind("<FocusIn>",
+                                      lambda event: on_click(event, quantity_text, self.sell_quantity_input))
+        self.sell_quantity_input.bind("<FocusOut>",
+                                      lambda event: on_focus_out(event, quantity_text, self.sell_quantity_input))
         self.sell_price_input.bind("<FocusIn>", lambda event: on_click(event, price_text, self.sell_price_input))
         self.sell_price_input.bind("<FocusOut>", lambda event: on_focus_out(event, price_text, self.sell_price_input))
 
-        self.sell_button = tk.Button(self.portfolio_frame, text="Sell", command = self.sell, fg="green")
-        self.sell_button.grid(row=3, column = 3, sticky = "ew")
+        self.sell_button = tk.Button(self.portfolio_frame, text="Sell", command=self.sell, fg="green")
+        self.sell_button.grid(row=3, column=3, sticky="ew")
 
         self.active_table.bind("<BackSpace>", self.delete)
-        self.delete_button = tk.Button(self.portfolio_frame, text="Delete", command = self.delete, fg="red")
+        self.delete_button = tk.Button(self.portfolio_frame, text="Delete", command=self.delete, fg="red")
         self.delete_button.grid(row=4, column=3)
 
         self.error_label = tk.Label(self.portfolio_frame, text="", fg="red", font=('Roboto', 12))
-        self.error_label.grid(row = 4, column = 1, columnspan=2, sticky = "ew")
+        self.error_label.grid(row=4, column=1, columnspan=2, sticky="ew")
 
         for stock in self.transaction_handler.get_active_stocks():
             curr_price = self.finance.get_current_price(stock.ticker)
-            gain = self.finance.calculate_profit(stock, curr_price)
+            gain = self.finance.calculate_profit(stock.price, curr_price, stock.type, stock.remaining)
             gain_str = '$' + str(gain) if gain > 0 else "-$" + str(abs(gain))
             if stock.type == "SHORT":
-                quantity = (-1)*stock.remaining
+                quantity = (-1) * stock.remaining
             else:
                 quantity = stock.remaining
-            table_entry = (stock.id, stock.ticker, quantity, "$"+str(stock.price), "$"+str(curr_price), gain_str)
-            item_id=self.active_table.insert(parent='', index = tk.END, values=table_entry)
+            table_entry = (stock.id, stock.ticker, quantity, "$" + str(stock.price), "$" + str(curr_price), gain_str)
+            item_id = self.active_table.insert(parent='', index=tk.END, values=table_entry)
 
             color = 'green' if gain > 0 else 'red'
             self.active_table.tag_configure(color, foreground=color)
@@ -198,14 +200,15 @@ class MyGUI:
         if sell_price <= 0:
             self.error_label.configure(text="Invalid price")
             return
-
-        self.transaction_handler.sell_transaction(sell_id, sell_quantity)
+        today = get_date()
+        self.transaction_handler.sell_transaction(sell_id, sell_quantity, sell_price, today)
         self.create_portfolio_page()
         self.update_profits()
 
     def update_profits(self):
         """updates the profit displays"""
-        profit_text = self.transaction_handler.get_profit()
+        today = get_date()
+        profit_text = self.transaction_handler.get_profits(today)
         self.total_profit_label = tk.Label(self.portfolio_frame, text=profit_text)
         # TODO: total profit and recent profit of last 5 sells
 
@@ -220,7 +223,7 @@ class MyGUI:
             return
         if focused and tk.messagebox.showwarning(message='Are you sure you want to delete this transaction.'
                                                          '\nThis action cannot be undone!',
-                                                        type=tk.messagebox.YESNO) == 'yes':
+                                                 type=tk.messagebox.YESNO) == 'yes':
             details = self.active_table.item(focused)
             id = details['values'][0]
             self.transaction_handler.delete_transaction(id)
@@ -241,7 +244,7 @@ class MyGUI:
         fee = self.fee_input.get()
 
         if not all([quantity, ticker, type, price, fee]):
-            (tk.Label(self.input_frame, text="Fill all the values", fg = "red", font=('Roboto', 12))
+            (tk.Label(self.input_frame, text="Fill all the values", fg="red", font=('Roboto', 12))
              .grid(row=2, column=0, columnspan=6, sticky="nsew"))
             return
         elif not self.finance.check_ticker(ticker):
@@ -253,36 +256,34 @@ class MyGUI:
             try:
                 quantity = round(float(quantity), 1)
             except ValueError:
-                (tk.Label(self.input_frame, text="Invalid quantity", fg = "red", font=('Roboto', 12))
+                (tk.Label(self.input_frame, text="Invalid quantity", fg="red", font=('Roboto', 12))
                  .grid(row=2, column=0, columnspan=6, sticky="nsew"))
                 return
             try:
                 price = float(price)
             except ValueError:
-                (tk.Label(self.input_frame, text="Invalid price", fg = "red", font=('Roboto', 12))
+                (tk.Label(self.input_frame, text="Invalid price", fg="red", font=('Roboto', 12))
                  .grid(row=2, column=0, columnspan=6, sticky="nsew"))
                 return
             try:
                 fee = float(fee)
             except ValueError:
-                (tk.Label(self.input_frame, text="Invalid fee", fg = "red", font=('Roboto', 12))
+                (tk.Label(self.input_frame, text="Invalid fee", fg="red", font=('Roboto', 12))
                  .grid(row=2, column=0, columnspan=6, sticky="nsew"))
                 return
-        if quantity <= 0 or price <= 0 or fee< 0:
-            (tk.Label(self.input_frame, text="Quantity, price, and fee should be positive", fg = "red", font=('Roboto', 12))
+        if quantity <= 0 or price <= 0 or fee < 0:
+            (tk.Label(self.input_frame, text="Quantity, price, and fee should be positive", fg="red",
+                      font=('Roboto', 12))
              .grid(row=2, column=0, columnspan=6, sticky="nsew"))
             return
 
-        self.ticker_input.delete(0,tk.END)
-        self.quantity_input.delete(0,tk.END)
-        self.price_input.delete(0,tk.END)
-        self.fee_input.delete(0,tk.END)
-
-        today = datetime.date.today()
-        date_today = [today.year, today.month, today.day]
+        self.ticker_input.delete(0, tk.END)
+        self.quantity_input.delete(0, tk.END)
+        self.price_input.delete(0, tk.END)
+        self.fee_input.delete(0, tk.END)
 
         fee_weighted_price = round((price * quantity + fee) / quantity, 2)
-        transaction = Transaction(ticker, type, date_today, quantity, fee_weighted_price, quantity)
+        transaction = Transaction(ticker, type, get_date(), quantity, fee_weighted_price, quantity)
         self.transaction_handler.upload_transaction(transaction)
 
 
