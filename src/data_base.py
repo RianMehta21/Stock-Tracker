@@ -146,6 +146,10 @@ class TransactionHandler:
         connection.commit()
         connection.close()
 
+    def get_profit(self, month = None):
+        """Gets profit of all time if month is none or profit of that specific month"""
+        ...
+
     def delete_data_base(self):
         """deletes database"""
         connection = sqlite3.connect("transactions.db")

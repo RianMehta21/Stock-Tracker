@@ -4,8 +4,6 @@ import tkinter as tk
 from tkinter import StringVar, ttk
 from tkinter import messagebox
 
-from platformdirs.windows import get_win_folder
-
 from data_base import *
 
 
@@ -86,6 +84,9 @@ class MyGUI:
         """Sets up the portfiolio tab"""
         for widget in self.portfolio_frame.winfo_children():
             widget.destroy()
+
+        self.update_profits()
+
         self.active_table = ttk.Treeview(self.portfolio_frame,
                                     columns = ('id','ticker', 'quantity', 'price', 'current_price', 'net'),
                                     show = 'headings', selectmode=tk.BROWSE)
@@ -200,7 +201,13 @@ class MyGUI:
 
         self.transaction_handler.sell_transaction(sell_id, sell_quantity)
         self.create_portfolio_page()
+        self.update_profits()
 
+    def update_profits(self):
+        """updates the profit displays"""
+        profit_text = self.transaction_handler.get_profit()
+        self.total_profit_label = tk.Label(self.portfolio_frame, text=profit_text)
+        # TODO: total profit and recent profit of last 5 sells
 
     def delete(self, _=None):
         """deletes selected transaction"""
