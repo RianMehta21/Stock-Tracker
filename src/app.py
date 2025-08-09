@@ -96,7 +96,7 @@ class MyGUI:
         self.active_table.heading('current_price', text='Current Price')
         self.active_table.heading('net', text='Profit/Loss')
 
-        self.active_table.column('ticker', width=120, anchor=tk.W, stretch=True)
+        self.active_table.column('ticker', width=120, anchor=tk.CENTER, stretch=True)
         self.active_table.column('quantity', width=150, anchor=tk.CENTER, stretch=True)
         self.active_table.column('price', width=150, anchor=tk.CENTER, stretch=True)
         self.active_table.column('current_price', width=150, anchor=tk.CENTER, stretch=True)
@@ -104,19 +104,19 @@ class MyGUI:
 
         self.active_table["displaycolumns"] = ['ticker', 'quantity', 'price', 'current_price', 'net']
 
-        self.active_table.grid(row=0, column=0, columnspan=4, sticky="nsew")
         self.portfolio_frame.columnconfigure(0, weight=1)
-        self.portfolio_frame.rowconfigure(0, weight=1)
+        self.portfolio_frame.rowconfigure(1, weight=1)
+        self.active_table.grid(row=1, column=0, columnspan=6, sticky="nsew")
 
         quantity_text = "Enter quantity: "
         self.sell_quantity_input = ttk.Entry(self.portfolio_frame, width=10, foreground="grey")
         self.sell_quantity_input.insert(0, quantity_text)
-        self.sell_quantity_input.grid(row=3, column=1, sticky="e")
+        self.sell_quantity_input.grid(row=4, column=3, sticky="e")
 
         price_text = "Enter price: "
         self.sell_price_input = ttk.Entry(self.portfolio_frame, width=10, foreground="grey")
         self.sell_price_input.insert(0, price_text)
-        self.sell_price_input.grid(row=3, column=2, sticky="e")
+        self.sell_price_input.grid(row=4, column=4, sticky="e")
 
         def on_click(_, placeholder_text, widget) -> None:
             """
@@ -142,14 +142,14 @@ class MyGUI:
         self.sell_price_input.bind("<FocusOut>", lambda event: on_focus_out(event, price_text, self.sell_price_input))
 
         self.sell_button = tk.Button(self.portfolio_frame, text="Sell", command=self.sell, fg="green")
-        self.sell_button.grid(row=3, column=3, sticky="ew")
+        self.sell_button.grid(row=4, column=5, sticky = "ew")
 
         self.active_table.bind("<BackSpace>", self.delete)
         self.delete_button = tk.Button(self.portfolio_frame, text="Delete", command=self.delete, fg="red")
-        self.delete_button.grid(row=4, column=3)
+        self.delete_button.grid(row=5, column=5)
 
         self.error_label = tk.Label(self.portfolio_frame, text="", fg="red", font=('Roboto', 12))
-        self.error_label.grid(row=4, column=1, columnspan=2, sticky="ew")
+        self.error_label.grid(row=5, column=3, columnspan=2, sticky="ew")
 
         for stock in self.transaction_handler.get_active_stocks():
             curr_price = self.finance.get_current_price(stock.ticker)
@@ -206,11 +206,24 @@ class MyGUI:
         self.update_profits()
 
     def update_profits(self):
-        """updates the profit displays"""
+        """updates the profit displays. if arg is 1, create the labels"""
         today = get_date()
-        profit_text = self.transaction_handler.get_profits(today)
-        self.total_profit_label = tk.Label(self.portfolio_frame, text=profit_text)
-        # TODO: total profit and recent profit of last 5 sells
+        profits = self.transaction_handler.get_profits(today)
+
+        self.profit_frame = tk.Frame(self.portfolio_frame, bg="#2B2B2B")
+        self.profit_frame.grid(row=0, column=0, columnspan=6, pady=10, sticky="ew")
+        for i in range(3):
+            self.profit_frame.columnconfigure(i, weight=1)
+
+        self.total_profit_label = tk.Label(self.profit_frame, text="Total Profit: $" + str(profits[0]),
+                                           font=('Roboto', 20), bg="#2B2B2B", fg="green" if profits[0] > 0 else "red")
+        self.total_profit_label.grid(row=0, column=0, sticky="n")
+        self.month_profit_label = tk.Label(self.profit_frame, text="Month's Profit: $" + str(profits[1]),
+                                           font=('Roboto', 20), bg="#2B2B2B", fg="green" if profits[1] > 0 else "red")
+        self.month_profit_label.grid(row=0, column=1, sticky="n")
+        self.month_profit_label = tk.Label(self.profit_frame, text="Today's Profit: $" + str(profits[2]),
+                                           font=('Roboto', 20), bg="#2B2B2B", fg="green" if profits[2] > 0 else "red")
+        self.month_profit_label.grid(row=0, column=2, sticky="n")
 
     def delete(self, _=None):
         """deletes selected transaction"""

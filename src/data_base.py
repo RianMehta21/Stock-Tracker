@@ -163,7 +163,7 @@ class TransactionHandler:
         connection.close()
 
     def get_profits(self, today):
-        """Gets profit of all time, this month, and today"""
+        """Gets profit of all time, this month, and today and returns it in a list"""
         year, month, day = today
         connection = sqlite3.connect("transactions.db")
         cursor = connection.cursor()
@@ -173,14 +173,15 @@ class TransactionHandler:
         month_results = cursor.fetchall()
         cursor.execute("""SELECT profit FROM profits""")
         all_results = cursor.fetchall()
-
+        print(all_results)
+        print(month_results)
+        print(day_results)
         profits = []
-        for prof in [day_results, month_results, all_results]:
+        for prof in [all_results, month_results, day_results]:
             total = 0
             for entry in prof:
                 total += sum(entry)
-            profits.append(total)
-        print(profits)
+            profits.append(round(total,2))
         return profits
 
     def delete_data_base(self):
