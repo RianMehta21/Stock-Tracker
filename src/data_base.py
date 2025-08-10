@@ -3,6 +3,7 @@ import datetime
 import sqlite3
 from finance import Finance
 
+
 class Transaction:
     """
     Represents a single transaction
@@ -151,6 +152,7 @@ class TransactionHandler:
                 total += sum(entry)
             profits.append(round(total, 2))
         return profits
+
 
 def get_date():
     """returns todays date in a tuple of (year, month, date)"""
