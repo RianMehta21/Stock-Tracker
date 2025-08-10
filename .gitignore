@@ -1,0 +1,13 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Local database (don't upload your private transactions)
+transactions.db
+
+# Virtual environment folder (if you create one)
+venv/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
