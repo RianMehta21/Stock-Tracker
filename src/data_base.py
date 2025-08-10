@@ -152,36 +152,6 @@ class TransactionHandler:
             profits.append(round(total, 2))
         return profits
 
-    def delete_data_base(self):
-        """deletes database"""
-        connection = sqlite3.connect("transactions.db")
-        cursor = connection.cursor()
-        cursor.execute("""DELETE FROM transactions""")
-        connection.commit()
-        connection.close()
-
-    def read_transaction(self):
-        """gets stocks that haven't been sold"""
-        connection = sqlite3.connect("transactions.db")
-        cursor = connection.cursor()
-        cursor.execute("""SELECT * FROM transactions""")
-        results = cursor.fetchall()
-        for transaction in results:
-            print(transaction)
-        connection.close()
-
-    def read_profit(self):
-        """gets stocks that haven't been sold"""
-        connection = sqlite3.connect("transactions.db")
-        cursor = connection.cursor()
-        cursor.execute("""SELECT * FROM profits""")
-        results = cursor.fetchall()
-        for transaction in results:
-            print(transaction)
-
-        connection.close()
-
-
 def get_date():
     """returns todays date in a tuple of (year, month, date)"""
     today = datetime.date.today()
