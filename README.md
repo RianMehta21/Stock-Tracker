@@ -36,12 +36,12 @@ python app.py
 ### Input Transaction Tab
 
 Form for recording new **BUY** or **SHORT** trades. The ticker needs to match Yahoo Finance. If there are invalid
-inputs, an error message will display.
+inputs, an **error message** will display.
 ![Input tab](images/input_page.png)
 
 ### Portfolio Tab
 
-Displays active positions with real-time prices and profit/loss. Allows deletion of a transaction by inputting the
-quantity you want to sell and the price you are selling at. The profits at the top will update accordingly. If the
-inputs are invalid, an error message will display accordingly.
+Displays active positions with real-time prices and profit/loss. Allows **deletion** of a transaction by inputting the
+quantity you want to sell and the price you are selling at. The **profits** at the top will update accordingly. If the
+inputs are invalid, an **error message** will display accordingly.
 ![Portfolio tab](images/portfolio_page.png)
