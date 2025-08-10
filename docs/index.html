@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stock Tracker GUI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 3px solid #ccc;
+    }
+    h1 {
+      margin-bottom: 0;
+    }
+    h2 {
+      color: #222;
+    }
+    img.screenshot {
+      width: 100%;
+      max-width: 700px;
+      border: 1px solid #ccc;
+      margin: 15px 0;
+    }
+    code {
+      background: #eee;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    pre {
+      background: #272822;
+      color: #f8f8f2;
+      padding: 10px;
+      overflow-x: auto;
+      border-radius: 4px;
+    }
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.9em;
+      color: #555;
+    }
+    a.button {
+      display: inline-block;
+      padding: 10px 15px;
+      margin: 10px 0;
+      background: #007acc;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    a.button:hover {
+      background: #005f99;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Stock Tracker GUI</h1>
+    <p>A desktop app for tracking stock trades & portfolio performance.</p>
+    <a href="https://github.com/yourusername/stock-tracker" class="button">View on GitHub</a>
+  </header>
+
+  <section>
+    <h2>Overview</h2>
+    <p>
+      Stock Tracker GUI is a Python desktop application that lets you log buy/short stock transactions,
+      track current portfolio status, and calculate real-time profit/loss using live Yahoo Finance data.
+    </p>
+  </section>
+
+  <section>
+    <h2>Features</h2>
+    <ul>
+      <li>Record BUY and SHORT transactions.</li>
+      <li>View active positions with live prices.</li>
+      <li>Calculate total, monthly, and daily profits.</li>
+      <li>Store all data in a local SQLite database.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Installation & Usage</h2>
+    <p>To run this application on your computer:</p>
+    <pre>
+git clone https://github.com/yourusername/stock-tracker.git
+cd stock-tracker
+pip install -r requirements.txt
+python app.py
+    </pre>
+    <p><strong>Note:</strong> This is a desktop GUI app, so it won’t run in your browser. You must run it locally with Python installed.</p>
+  </section>
+
+  <section>
+    <h2>Screenshot</h2>
+    <!-- Replace with actual screenshot if you have one -->
+    <img src="screenshot.png" alt="Stock Tracker GUI Screenshot" class="screenshot">
+  </section>
+
+  <section>
+    <h2>License</h2>
+    <p>This project is licensed under the MIT License.</p>
+  </section>
+
+  <footer>
+    <p>© 2025 Your Name. All rights reserved.</p>
+  </footer>
+</body>
+</html>
