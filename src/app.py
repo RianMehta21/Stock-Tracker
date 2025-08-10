@@ -1,9 +1,10 @@
-""""The GUI for main.py"""
+""""The GUI for the stock trader"""
 
 from data_base import get_date
 import tkinter as tk
 from tkinter import StringVar, ttk
 from tkinter import messagebox
+from finance import Finance
 
 from data_base import *
 
@@ -142,7 +143,7 @@ class MyGUI:
         self.sell_price_input.bind("<FocusOut>", lambda event: on_focus_out(event, price_text, self.sell_price_input))
 
         self.sell_button = tk.Button(self.portfolio_frame, text="Sell", command=self.sell, fg="green")
-        self.sell_button.grid(row=4, column=5, sticky = "ew")
+        self.sell_button.grid(row=4, column=5, sticky="ew")
 
         self.active_table.bind("<BackSpace>", self.delete)
         self.delete_button = tk.Button(self.portfolio_frame, text="Delete", command=self.delete, fg="red")

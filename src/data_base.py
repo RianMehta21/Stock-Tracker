@@ -1,8 +1,7 @@
-"""main for stock tracker"""
+"""Handles the database and all database related functions"""
 import datetime
 import sqlite3
-import yfinance as yf
-
+from finance import Finance
 
 class Transaction:
     """
@@ -25,7 +24,8 @@ class Transaction:
     price: float
     remaining: float
 
-    def __init__(self, ticker: str, type: str, date: tuple[int, int, int], quantity: float, price: float, remaining: float,
+    def __init__(self, ticker: str, type: str, date: tuple[int, int, int], quantity: float, price: float,
+                 remaining: float,
                  id=None) -> None:
         """Initializes values to the arguments"""
         self.ticker = ticker.upper()
@@ -36,35 +36,6 @@ class Transaction:
         self.remaining = remaining
         if id:
             self.id = id
-
-
-class Finance:
-    """Handles finance related"""
-    def check_ticker(self, ticker: str) -> bool:
-        """Returns if ticker is a valid ticker"""
-        try:
-            stock = yf.Ticker(ticker)
-            data = stock.history(period="1d")
-            if not data.empty:
-                return True
-            return False
-        except:
-            return False
-
-    def get_current_price(self, ticker: str):
-        """gets the current market price of the stock"""
-        stock = yf.Ticker(ticker)
-        return stock.info["regularMarketPrice"]
-
-    def calculate_profit(self, start_price:float, end_price: float, stock_type:str, quantity:float):
-        """calculates gain/loss"""
-        if stock_type == "BUY":
-            gain = round(((end_price - start_price) * quantity), 2)
-        elif stock_type == "SHORT":
-            gain = round(((start_price - end_price) * abs(quantity)), 2)
-        else:
-            return
-        return gain
 
 
 class TransactionHandler:
@@ -120,7 +91,7 @@ class TransactionHandler:
         results = cursor.fetchall()[0]
         return results[8]
 
-    def sell_transaction(self, sell_id: int, sell_quantity: float, sell_price: float, date:tuple[int, int, int]):
+    def sell_transaction(self, sell_id: int, sell_quantity: float, sell_price: float, date: tuple[int, int, int]):
         """Handles the selling of a ticker"""
         year, month, day = date
         connection = sqlite3.connect("transactions.db")
@@ -173,15 +144,12 @@ class TransactionHandler:
         month_results = cursor.fetchall()
         cursor.execute("""SELECT profit FROM profits""")
         all_results = cursor.fetchall()
-        print(all_results)
-        print(month_results)
-        print(day_results)
         profits = []
         for prof in [all_results, month_results, day_results]:
             total = 0
             for entry in prof:
                 total += sum(entry)
-            profits.append(round(total,2))
+            profits.append(round(total, 2))
         return profits
 
     def delete_data_base(self):
@@ -210,6 +178,7 @@ class TransactionHandler:
         results = cursor.fetchall()
         for transaction in results:
             print(transaction)
+
         connection.close()
 
 
