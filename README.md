@@ -1,6 +1,6 @@
 # Stock Tracker
 
-A desktop app to track stock purchases, shorts, and calculate profits in real time using Yahoo Finance data.
+A desktop GUI app to track stock purchases, shorts, and calculate profits in real time using Yahoo Finance data.
 
 ## Features
 
