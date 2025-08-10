@@ -24,3 +24,13 @@ pip install -r requirements.txt
 ```commandline
 python app.py
 ```
+
+## Screenshots
+
+### Input Transaction Tab
+Form for recording new **BUY** or **SHORT** trades.
+![Input tab](images/input_page.png)
+
+### Portfolio Tab
+Displays active positions with real-time prices and profit/loss.
+![Portfolio tab](images/portfolio_page.png)
